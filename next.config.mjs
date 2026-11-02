@@ -130,6 +130,17 @@ const nextConfig = {
           },
         ],
       },
+      {
+        // Files in public/static (hero, icons, decorations). Cached for a year:
+        // when replacing one, give it a new name/folder (e.g. hero/v2/).
+        source: "/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
     ];
   },
 

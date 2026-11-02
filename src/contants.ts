@@ -180,4 +180,28 @@ function getAssetPathFromID(
   ].join("");
 }
 
-export { Constants, Paths, getAssetPathFromID };
+// Formats Directus can resize without changing how they look
+// (GIF could lose its animation, SVG its vector sharpness).
+const RESIZABLE_IMAGE = /\.(png|jpe?g|webp)$/i;
+
+/**
+ * `srcSet` (1x/2x/3x) that asks Directus for a file resized to the displayed
+ * size instead of the original upload, which is often 100-250 KB for an
+ * 80px logo. `fit=inside` keeps the aspect ratio and `withoutEnlargement`
+ * never upscales, so `object-contain` renders the same as with the original.
+ */
+function getResizedAssetSrcSet(
+  file: { id?: string | null; filename_disk?: string | null } | null | undefined,
+  displaySize: number
+): string | undefined {
+  if (!file?.id || !RESIZABLE_IMAGE.test(file.filename_disk ?? "")) return undefined;
+
+  return [1, 2, 3]
+    .map((density) => {
+      const size = displaySize * density;
+      return `${Constants.BASE_ASSET_URL}/${file.id}?width=${size}&height=${size}&fit=inside&withoutEnlargement=true&format=webp&quality=80 ${density}x`;
+    })
+    .join(", ");
+}
+
+export { Constants, Paths, getAssetPathFromID, getResizedAssetSrcSet };

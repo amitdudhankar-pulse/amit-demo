@@ -112,6 +112,12 @@ module.exports = {
         "0%, 100%": { transform: "translateY(0)" },
         "50%": { transform: "translateY(-10px)" },
       },
+
+      // TrustedBySlider: the track holds the logos twice, so -50% is one full loop
+      marquee: {
+        "0%": { transform: "translateX(0)" },
+        "100%": { transform: "translateX(-50%)" },
+      },
     },
     animation: {
       "slide-down": "slide-down 0.15s ease-out forwards",
@@ -119,6 +125,7 @@ module.exports = {
       "card-heartbeat": "card-heartbeat 3s ease-out forwards infinite",
       float: "float 3s ease-in-out infinite",
       "bg-translate": "bg-translate 10s ease-in-out infinite",
+      marquee: "marquee 30s linear infinite",
     },
     variants: {
       extend: {

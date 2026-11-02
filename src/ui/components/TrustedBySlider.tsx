@@ -1,6 +1,3 @@
-"use client";
-
-import { useEffect, useRef } from "react";
 import Image from "next/image";
 
 interface ClientLogo {
@@ -14,60 +11,12 @@ interface Props {
   items: ClientLogo[];
 }
 
+// Infinite logo marquee. The list is rendered twice and `animate-marquee`
+// shifts the track by half its width every 30s at constant speed, so the
+// second copy lands exactly where the first started. This runs on the
+// compositor in CSS; it used to be a GSAP tween that updated the transform
+// from JavaScript on every frame.
 export default function TrustedBySlider({ items }: Props) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const tweenRef = useRef<gsap.core.Tween | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const initAnimation = async () => {
-      if (!trackRef.current || cancelled) return;
-
-      // ✅ Correct GSAP lazy import
-      const { gsap } = await import("gsap");
-
-      const track = trackRef.current;
-
-      requestAnimationFrame(() => {
-        if (!track || cancelled) return;
-
-        const totalWidth = track.scrollWidth / 2;
-
-        tweenRef.current = gsap.to(track, {
-          x: -totalWidth,
-          duration: 30,
-          ease: "linear",
-          repeat: -1,
-          force3D: true,
-        });
-      });
-    };
-
-    // ⏳ Delay animation for better TBT / LCP
-    if ("requestIdleCallback" in window) {
-      (window as any).requestIdleCallback(initAnimation);
-    } else {
-      setTimeout(initAnimation, 200);
-    }
-
-    // ⏸ Pause animation when tab is hidden
-    const handleVisibility = () => {
-      if (!tweenRef.current) return;
-      document.hidden
-        ? tweenRef.current.pause()
-        : tweenRef.current.resume();
-    };
-
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    return () => {
-      cancelled = true;
-      tweenRef.current?.kill();
-      document.removeEventListener("visibilitychange", handleVisibility);
-    };
-  }, []);
-
   return (
     <div className="overflow-hidden py-4">
       <h3 className="text-start text-3xl font-bold mb-4">
@@ -75,10 +24,8 @@ export default function TrustedBySlider({ items }: Props) {
       </h3>
 
       <div className="relative w-full overflow-hidden">
-        <div
-          ref={trackRef}
-          className="flex items-center gap-16 whitespace-nowrap will-change-transform"
-        >
+        {/* w-max: the track must be as wide as its content for the -50% shift */}
+        <div className="flex w-max items-center gap-16 whitespace-nowrap will-change-transform animate-marquee">
           {[...items, ...items].map((client, index) => (
             <a
               key={`${client.id}-${index}`}

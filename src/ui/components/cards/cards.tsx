@@ -471,7 +471,7 @@
 //   ReviewCard,
 // };
 
-import { getAssetPathFromID, Paths } from "@/contants";
+import { getAssetPathFromID, getResizedAssetSrcSet, Paths } from "@/contants";
 import { Blog, Configuration, Product, Review } from "@/lib/lib";
 import {
   BlogCardData,
@@ -672,6 +672,7 @@ const ToolCard_FigmaExport_TailwindRounded = ({
   visible_tags,
   id,
   slug,
+  logo_resizable,
   className,
 }: { className?: string } & ToolCardData) => {
   const logoSrc = getAssetPathFromID(logo?.id) ?? logo_url ?? "";
@@ -689,6 +690,9 @@ const ToolCard_FigmaExport_TailwindRounded = ({
               <Image
                 className="p-1 size-20 min-w-20 rounded-2xl object-contain outline outline-1 outline-boundary-light"
                 src={logoSrc}
+                srcSet={
+                  logo_resizable ? getResizedAssetSrcSet(logo, 80) : undefined
+                }
                 alt={logo?.title ?? title}
                 fallbackSrc={Paths.IMAGE.FALLBACK}
               />

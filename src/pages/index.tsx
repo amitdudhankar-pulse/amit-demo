@@ -24,26 +24,21 @@ import {
 } from "@/ui/components/domain_components";
 import { Constants, getAssetPathFromID, Paths } from "@/contants";
 import { Layout } from "@/ui/layouts/layouts";
-import { CMS, Configuration, HeropageInfo } from "@/lib/lib";
+import { CMS, Configuration, HeropageInfo, Product } from "@/lib/lib";
 import {
   BlogCardData,
   CategoryCardData,
   ToolCardData,
+  findResizableLogos,
   toBlogCard,
   toCategoryCard,
   toToolCard,
 } from "@/lib/card_data";
 import dynamic from "next/dynamic";
 
-const TrustedBySlider = dynamic(
-  () => import("@/ui/components/TrustedBySlider"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-24 w-full animate-pulse bg-gray-200 rounded-xl" />
-    ),
-  },
-);
+// Server-rendered: the marquee is pure CSS, so nothing here needs the client,
+// and rendering it up front avoids the placeholder-to-slider layout shift.
+import TrustedBySlider from "@/ui/components/TrustedBySlider";
 
 const YoutubePlayerSection = dynamic(
   () => import("@/ui/components/youtubePlayer"), {
@@ -53,7 +48,6 @@ const YoutubePlayerSection = dynamic(
     ),
   }
 )
-// import TrustedBySlider from "@/ui/components/TrustedBySlider";
 import { twMerge } from "tailwind-merge";
 import { PropsWithChildren, useRef, memo, useCallback, useMemo } from "react";
 import { useIntersectionObserver } from "@/ui/logic/logic";
@@ -548,6 +542,16 @@ export async function getStaticProps(): Promise<{
     const allToolCount = allTools.length;
     const allCourseCount = Math.max(courseCount - allToolCount, 0);
 
+    const courseList = allCourses.slice(0, MAX_CARDS_IN_GRID);
+    const resizableLogos = await findResizableLogos([
+      ...courseList,
+      ...featuredToolList,
+      ...editorChoiceToolList,
+      ...verifiedToolList,
+      ...popularToolList,
+    ]);
+    const toCard = (product: Product) => toToolCard(product, resizableLogos);
+
     // ----------------------------------------------------------
     // 3️⃣ RETURN EXACT HomeProps SHAPE
     // Lists are reduced to the fields their cards render: props are
@@ -564,13 +568,13 @@ export async function getStaticProps(): Promise<{
         // functionList, // ✅ FIXED
 
         blogList: blogList.map(toBlogCard),
-        courseList: allCourses.slice(0, MAX_CARDS_IN_GRID).map(toToolCard),
+        courseList: courseList.map(toCard),
 
         // 🎯 curated lists
-        featruedToolList: featuredToolList.map(toToolCard),
-        editorChoiceToolList: editorChoiceToolList.map(toToolCard),
-        verifiedToolList: verifiedToolList.map(toToolCard),
-        popularToolList: popularToolList.map(toToolCard),
+        featruedToolList: featuredToolList.map(toCard),
+        editorChoiceToolList: editorChoiceToolList.map(toCard),
+        verifiedToolList: verifiedToolList.map(toCard),
+        popularToolList: popularToolList.map(toCard),
 
         heropageInfo,
         trustedBy,
@@ -605,6 +609,31 @@ export async function getStaticProps(): Promise<{
   }
 }
 
+// Raster copies of /static/homepage-hero.svg and homepage-hero-mobile.svg,
+// rendered with Chrome. The SVGs embed 29 PNGs (824 KB / 527 KB) and were
+// the LCP image; these are ~50 KB at the sizes the page displays.
+// `sizes` follows the layout: 80% of the content column from md, which is
+// capped at 1380px minus 2 x 56px padding (the hero is 1014px at most).
+const HERO_IMAGE = {
+  desktop: {
+    widths: [640, 828, 1080, 1280, 1600, 2048],
+    sizes:
+      "(min-width: 1380px) 1015px, (min-width: 768px) calc(80vw - 90px), calc(100vw - 32px)",
+  },
+  mobile: {
+    widths: [480, 640, 828, 1080, 1280],
+    sizes: "calc(100vw - 32px)",
+  },
+};
+
+const heroSrcSet = (
+  variant: keyof typeof HERO_IMAGE,
+  format: "avif" | "webp",
+) =>
+  HERO_IMAGE[variant].widths
+    .map((width) => `/static/hero/v1/${variant}-${width}.${format} ${width}w`)
+    .join(", ");
+
 const HeroComponent: React.FC<HeroProps> = ({ heropageInfo, className }) => {
   const hero = heropageInfo[0] ?? ({} as HeropageInfo);
 
@@ -635,18 +664,36 @@ const HeroComponent: React.FC<HeroProps> = ({ heropageInfo, className }) => {
           {/* Desktop */}
           <source
             media="(min-width: 640px)"
-            srcSet="/static/homepage-hero.svg"
+            type="image/avif"
+            srcSet={heroSrcSet("desktop", "avif")}
+            sizes={HERO_IMAGE.desktop.sizes}
+          />
+          <source
+            media="(min-width: 640px)"
+            type="image/webp"
+            srcSet={heroSrcSet("desktop", "webp")}
+            sizes={HERO_IMAGE.desktop.sizes}
           />
 
           {/* Mobile (fallback) */}
+          <source
+            type="image/avif"
+            srcSet={heroSrcSet("mobile", "avif")}
+            sizes={HERO_IMAGE.mobile.sizes}
+          />
           <img
-            src="/static/homepage-hero-mobile.svg"
+            src="/static/hero/v1/mobile-828.webp"
+            srcSet={heroSrcSet("mobile", "webp")}
+            sizes={HERO_IMAGE.mobile.sizes}
             alt="hero-image"
-            className="absolute w-full z-[1] object-top top-[25px] sm:top-[65px]"
-            width={1600}
-            height={900}
+            // aspect-*: the exact ratios of the original SVGs
+            className="absolute w-full z-[1] object-top top-[25px] sm:top-[65px] aspect-[323.25/248.25] sm:aspect-[571.5/254.25]"
+            width={1280}
+            height={984}
             loading="eager"
             decoding="async"
+            // Lowercase: React 18 does not know the camelCase prop
+            {...{ fetchpriority: "high" }}
           />
         </picture>
         {/* <img

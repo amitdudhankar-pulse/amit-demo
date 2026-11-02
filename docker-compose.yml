@@ -1,0 +1,80 @@
+version: "3.3"
+services:
+  amw-app:
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        pwd &&
+        mkdir -p /app && 
+        cp -r /src/* /app/ &&
+        npm i &&
+        npm run build &&
+        npm run start
+    volumes:
+      - ./:/src:ro
+    networks:
+      - al-server-internal-network
+    working_dir: /app
+    image: node:20-bullseye-slim
+    environment:
+      - 'VIRTUAL_PORT=3000'
+      - 'VIRTUAL_HOST=groupify.ai,www.groupify.ai'
+      - 'LETSENCRYPT_HOST=groupify.ai,www.groupify.ai'
+
+      - 'NEXT_PUBLIC_BASE_URL=https://admin.groupify.ai'
+      - 'NEXT_PUBLIC_PUBLIC_URL=https://groupify.ai'
+      - 'NEXT_PUBLIC_DEPLOYMENT=staging'
+
+
+  amw-staging-app:
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        pwd &&
+        mkdir -p /app && 
+        cp -r /src/* /app/ &&
+        npm i &&
+        npm run build &&
+        npm run start
+    volumes:
+      - ./:/src:ro
+    networks:
+      - al-server-internal-network
+    working_dir: /app
+    image: node:20-bullseye-slim
+    environment:
+      - 'VIRTUAL_PORT=3000'
+      - 'VIRTUAL_HOST=staging.groupify.ai'
+      - 'LETSENCRYPT_HOST=staging.groupify.ai'
+
+      - 'NEXT_PUBLIC_BASE_URL=https://admin.groupify.ai'
+      - 'NEXT_PUBLIC_PUBLIC_URL=https://staging.groupify.ai'
+      - 'NEXT_PUBLIC_DEPLOYMENT=staging'
+
+  amw-dev-app:
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        npm i &&
+        npm run dev
+    volumes:
+      - ./:/app
+    networks:
+      - al-server-internal-network
+    working_dir: /app
+    image: node:20-bullseye-slim
+    environment:
+      - 'VIRTUAL_PORT=3000'
+      - 'VIRTUAL_HOST=dev.groupify.ai'
+      - 'LETSENCRYPT_HOST=dev.groupify.ai'
+
+      - 'NEXT_PUBLIC_BASE_URL=https://admin.groupify.ai'
+      - 'NEXT_PUBLIC_PUBLIC_URL=https://dev.groupify.ai'
+      - 'NEXT_PUBLIC_DEPLOYMENT=staging'
+
+networks:
+  al-server-internal-network:
+    external: true

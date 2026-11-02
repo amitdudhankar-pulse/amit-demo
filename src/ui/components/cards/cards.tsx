@@ -472,7 +472,12 @@
 // };
 
 import { getAssetPathFromID, Paths } from "@/contants";
-import { Blog, CategoryV2, Configuration, Product, Review } from "@/lib/lib";
+import { Blog, Configuration, Product, Review } from "@/lib/lib";
+import {
+  BlogCardData,
+  CategoryCardData,
+  ToolCardData,
+} from "@/lib/card_data";
 import { Button, Rating, Link, Avatar } from "@/ui/components/components";
 import { ReactElement } from "react";
 import NextImage from "next/image";
@@ -558,7 +563,7 @@ const ArticleCard = ({
   disableMargins,
   key,
 }: {
-  blog: Blog;
+  blog: BlogCardData;
   className?: string;
   disableMargins?: boolean;
   key?: any;
@@ -668,10 +673,7 @@ const ToolCard_FigmaExport_TailwindRounded = ({
   id,
   slug,
   className,
-}: { className?: string } & Omit<
-  Omit<Product, "category_relations">,
-  "function_relations"
->) => {
+}: { className?: string } & ToolCardData) => {
   const logoSrc = getAssetPathFromID(logo?.id) ?? logo_url ?? "";
   return (
     <div
@@ -793,7 +795,7 @@ const CategoryCardV2 = ({
   toolCount,
   countSuffix = "Tools",
 }: {
-  category: CategoryV2;
+  category: CategoryCardData;
   toolCount: number;
   className?: string;
   countSuffix?: "Tools" | "Courses";
@@ -830,7 +832,7 @@ const CategoryCard = ({
   countSuffix = "Tools",
   className,
 }: {
-  category: CategoryV2;
+  category: CategoryCardData;
   toolCount: number;
   className?: string;
   countSuffix?: "Tools" | "Courses";

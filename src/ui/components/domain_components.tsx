@@ -13,13 +13,8 @@ import {
 } from "./components";
 // import { Section } from "./components";
 
-import {
-  Category,
-  CategoryV2,
-  Configuration,
-  Product,
-  FunctionV2,
-} from "@/lib/lib";
+import { Category, Configuration, FunctionV2 } from "@/lib/lib";
+import { CategoryCardData, ToolCardData } from "@/lib/card_data";
 import { ItemListingAnimation } from "./animations";
 import { createRef, useRef } from "react";
 import { Paths, getAssetPathFromID } from "@/contants";
@@ -31,7 +26,7 @@ const ToolCategoriesSection = ({
   type = "v1",
   ...props
 }: {
-  toolCategoryList: CategoryV2[];
+  toolCategoryList: CategoryCardData[];
   allToolCount: number;
   className?: string;
   type?: "v1" | "v2";
@@ -58,7 +53,7 @@ const AiCourseCategoriesSection = ({
   type = "v1",
   ...props
 }: {
-  courseCategoryList: CategoryV2[];
+  courseCategoryList: CategoryCardData[];
   allCourseCount: number;
   className?: string;
   type?: "v1" | "v2";
@@ -211,7 +206,7 @@ const FunctionCategoriesSection = ({
 };
 
 const ToolGrid = (props: {
-  toolList: Omit<Omit<Product, "category_relations">, "function_relations">[];
+  toolList: ToolCardData[];
   disableCardAnimation?: boolean;
   className?: string;
   activateLoadMore?: boolean;

@@ -1321,6 +1321,29 @@ namespace Fields {
   ];
 
   /**
+   * Category Fields without the product/function relations
+   * (the category schema defaults `products` to []).
+   * Listed explicitly because "*" returns relations as bare IDs,
+   * which the category schema rejects.
+   */
+  export const categoryWithoutProducts = [
+    "slug",
+    "title",
+    "meta_title",
+    "meta_description",
+    "image.*",
+    "short_description",
+    "description",
+    "related_topics",
+    "additional_topics",
+    "keywords",
+    "faq",
+    "category_type",
+    "logo.*",
+    "count(products)",
+  ];
+
+  /**
    * Function Fields
    * Includes:
    * - Base function fields
@@ -1476,6 +1499,9 @@ const CMS = {
   getAllCategories: async (props?: {
     options?: Record<string, any>;
     type?: "tool_category" | "course_category";
+    // false: skip the nested products, for pages that only show the category
+    // itself (the full query returns ~100 products per category)
+    withProducts?: boolean;
   }): Promise<CategoryV2[]> => {
     const options = props?.options ?? {};
 
@@ -1484,16 +1510,19 @@ const CMS = {
       ...(props?.type && { category_type: { _eq: props.type } }),
     };
 
-    const fields: string[] = [
-      "*",
-      "logo.*",
-      "image.*",
-      "products.*.*",
-      ...Fields.product.map((f) => `products.Products_id.${f}`),
-      "functions.*",
-      "functions.functions_id.*",
-      "count(products)",
-    ];
+    const fields: string[] =
+      props?.withProducts === false
+        ? Fields.categoryWithoutProducts
+        : [
+            "*",
+            "logo.*",
+            "image.*",
+            "products.*.*",
+            ...Fields.product.map((f) => `products.Products_id.${f}`),
+            "functions.*",
+            "functions.functions_id.*",
+            "count(products)",
+          ];
 
     let rows: unknown[];
 

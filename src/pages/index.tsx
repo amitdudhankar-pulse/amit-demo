@@ -24,14 +24,15 @@ import {
 } from "@/ui/components/domain_components";
 import { Constants, getAssetPathFromID, Paths } from "@/contants";
 import { Layout } from "@/ui/layouts/layouts";
+import { CMS, Configuration, HeropageInfo } from "@/lib/lib";
 import {
-  Blog,
-  CMS,
-  Configuration,
-  Product,
-  HeropageInfo,
-  CategoryV2,
-} from "@/lib/lib";
+  BlogCardData,
+  CategoryCardData,
+  ToolCardData,
+  toBlogCard,
+  toCategoryCard,
+  toToolCard,
+} from "@/lib/card_data";
 import dynamic from "next/dynamic";
 
 const TrustedBySlider = dynamic(
@@ -64,15 +65,15 @@ type HomeProps = {
   allToolCount: number;
   allCourseCount: number;
   config: Configuration;
-  toolCategoryList: CategoryV2[];
-  courseCategoryList: CategoryV2[];
+  toolCategoryList: CategoryCardData[];
+  courseCategoryList: CategoryCardData[];
   // functionList: FunctionV2[];
-  blogList: Blog[];
-  courseList: Product[];
-  editorChoiceToolList: Product[];
-  verifiedToolList: Product[];
-  featruedToolList: Product[];
-  popularToolList: Product[];
+  blogList: BlogCardData[];
+  courseList: ToolCardData[];
+  editorChoiceToolList: ToolCardData[];
+  verifiedToolList: ToolCardData[];
+  featruedToolList: ToolCardData[];
+  popularToolList: ToolCardData[];
   heropageInfo: HeropageInfo[];
   // ✅ ADD THIS
   trustedBy: {
@@ -487,9 +488,13 @@ export async function getStaticProps(): Promise<{
       // 🔹 All tools
       withRetry(() => CMS.getAllProducts("tool")),
 
-      // 🔹 Categories & Functions
-      withRetry(() => CMS.getAllCategories({ type: "tool_category" })),
-      withRetry(() => CMS.getAllCategories({ type: "course_category" })),
+      // 🔹 Categories & Functions (only the category cards are shown)
+      withRetry(() =>
+        CMS.getAllCategories({ type: "tool_category", withProducts: false }),
+      ),
+      withRetry(() =>
+        CMS.getAllCategories({ type: "course_category", withProducts: false }),
+      ),
       // CMS.getAllFunctions(), // ✅ USED PROPERLY
 
       // 🔹 Courses
@@ -545,6 +550,8 @@ export async function getStaticProps(): Promise<{
 
     // ----------------------------------------------------------
     // 3️⃣ RETURN EXACT HomeProps SHAPE
+    // Lists are reduced to the fields their cards render: props are
+    // embedded in the HTML and parsed by the browser before hydration.
     // ----------------------------------------------------------
     return {
       props: {
@@ -552,18 +559,18 @@ export async function getStaticProps(): Promise<{
         allCourseCount,
 
         config,
-        toolCategoryList,
-        courseCategoryList,
+        toolCategoryList: toolCategoryList.map(toCategoryCard),
+        courseCategoryList: courseCategoryList.map(toCategoryCard),
         // functionList, // ✅ FIXED
 
-        blogList,
-        courseList: allCourses.slice(0, MAX_CARDS_IN_GRID),
+        blogList: blogList.map(toBlogCard),
+        courseList: allCourses.slice(0, MAX_CARDS_IN_GRID).map(toToolCard),
 
         // 🎯 curated lists
-        featruedToolList: featuredToolList,
-        editorChoiceToolList,
-        verifiedToolList,
-        popularToolList,
+        featruedToolList: featuredToolList.map(toToolCard),
+        editorChoiceToolList: editorChoiceToolList.map(toToolCard),
+        verifiedToolList: verifiedToolList.map(toToolCard),
+        popularToolList: popularToolList.map(toToolCard),
 
         heropageInfo,
         trustedBy,
@@ -737,7 +744,7 @@ const HeroComponent: React.FC<HeroProps> = ({ heropageInfo, className }) => {
 // };
 
 type ToolFeedProps = {
-  data: { name: string; toolList: Product[] }[];
+  data: { name: string; toolList: ToolCardData[] }[];
   className?: string;
 };
 

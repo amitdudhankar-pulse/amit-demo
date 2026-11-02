@@ -14,7 +14,12 @@ import {
   TabPanels as HTabPanels,
   TabPanel as HTabPanel,
 } from "@headlessui/react";
-import { Blog, Category, CategoryV2, Product, User } from "@/lib/lib";
+import { Blog, Category, Product, User } from "@/lib/lib";
+import {
+  BlogCardData,
+  CategoryCardData,
+  ToolCardData,
+} from "@/lib/card_data";
 import { Paths } from "@/contants";
 import Logo from "./logo";
 import { HorizontalScroller } from "./horizontal_scroller";
@@ -265,7 +270,7 @@ const ToolListing = {
   //   );
   // },
 
-  Horizontal: (props: { productList: Product[]; className?: string }) => {
+  Horizontal: (props: { productList: ToolCardData[]; className?: string }) => {
     return (
       <HorizontalScroller
         className={props.className}
@@ -302,7 +307,7 @@ const ToolListing = {
 };
 
 const BlogListing = {
-  Horizontal: (props: { blogList: Blog[] }) => {
+  Horizontal: (props: { blogList: BlogCardData[] }) => {
     return (
       <HorizontalScroller
         dataList={props.blogList}
@@ -547,7 +552,7 @@ const CategorySection = ({
   countSuffix?: "Tools" | "Courses";
   title: string;
   subtitle?: ReactElement | string;
-  categories: CategoryV2[];
+  categories: CategoryCardData[];
   className?: string;
   type?: "v1" | "v2";
 }) => {

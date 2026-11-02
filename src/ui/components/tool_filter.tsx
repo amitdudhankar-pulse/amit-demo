@@ -174,12 +174,9 @@
 import { twMerge } from "tailwind-merge";
 import { Button, Form, Menu, MenuButton, MenuList } from "./components";
 import React, { createContext, useContext, useState } from "react";
-import { Product as ProductCore } from "@/lib/lib";
+import { ToolCardData } from "@/lib/card_data";
 
-type Product = Omit<
-  Omit<ProductCore, "category_relations">,
-  "function_relations"
->;
+type Product = ToolCardData;
 
 export interface FilterState {
   showFree: boolean;

@@ -4,7 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import { twMerge } from "tailwind-merge";
 import { MdBookmarkBorder, MdOutlineBookmark } from "react-icons/md";
 import { Paths } from "@/contants";
-import { useDialogControls } from "@/ui/components/components";
+// Import directly, not via the components barrel: the barrel imports
+// button.tsx, which reads Share/Bookmark at load time, so going through the
+// barrel creates a cycle that breaks when dev hot reload re-runs these modules.
+import { useDialogControls } from "@/ui/dialog/dialog_core";
 import { useAuthState } from "@/ui/logic/auth";
 import { useAPI } from "@/ui/logic/api";
 import style_constants from "@/../style_constants";
